@@ -1,9 +1,0 @@
-Name universe: Universe
-Game parameters: B3/S23
-Playing board: 
-------
-------
---***-
--***--
-------
-------
