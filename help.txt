@@ -3,3 +3,4 @@ dump - save the universe to a file.
 tick - calculate n (default 1) iterations and print the result.
 exit - end the game.
 print - print the current universe.
+help - print command help

@@ -1,69 +1,93 @@
 ﻿#include <iostream>
 #include "LifeGameHeader.hpp"
 
-int main()
+int main(int argc, char** argv)
 {
-	
-	std::cout << "Write the life file name: ";
-	std::string inputFilename;
-	std::cin >> inputFilename;
-	std::cout << std::endl;
-	Life* lifeGame = new Life(inputFilename);
-	std::cout << "Check and write the mode (offline or online): ";
 	std::string mode;
-	std::cin >> mode;
-	std::cout << std::endl;
-	if (mode == "offline")
+	std::string inputFilename;
+	std::string outputFilename = "out.life";
+	int countTick = 0;
+	if (argc == 1)
 	{
-		std::cout << "Write the output file name: ";
-		std::string outputFilename;
-		std::cin >> outputFilename;
-		std::cout << std::endl;
-		std::cout << "Write the count of ticks: ";
-		unsigned int countTick;
-		std::cin >> countTick;
-		std::cout << std::endl;
-		lifeGame->Tick(countTick);
-		lifeGame->Dump(outputFilename);
-		std::cout << "Your game have been saved in file: " << outputFilename;
-		return 0;
+		mode = "online";
 	}
-	else if (mode == "online")
+	if (argc > 1)
 	{
-		std::string action;
-		while (std::getline(std::cin, action))
+		mode = "offline";
+		inputFilename = argv[1];
+		for (int i = 2; i + 1 < argc; ++i)
 		{
-			if (action == "exit")
+			if (argv[i] == std::string("-i"))
 			{
-				return 0;
+				countTick = std::stoi(argv[i + 1]);
 			}
-			if (action == "help")
+			if (argv[i] == std::string("-o"))
 			{
-				lifeGame->Help();
-			}
-			if (action == "dump")
-			{
-				std::cout << "Write the output file name: ";
-				std::string outputName;
-				std::cin >> outputName;
-				std::cout << std::endl;
-				lifeGame->Dump(outputName);
-				std::cout << "Your game have been saved in file: " << outputName;
-				std::cout << std::endl;
-			}
-			if (action == "tick")
-			{
-				std::cout << "Write the count of ticks: ";
-				unsigned int countTick;
-				std::cin >> countTick;
-				std::cout << std::endl;
-				lifeGame->Tick(countTick);
-				lifeGame->PrintGame(std::cout);
-			}
-			if (action == "print")
-			{
-				lifeGame->PrintGame(std::cout);
+				outputFilename = argv[i + 1];
 			}
 		}
+	}
+	try
+	{
+		if (mode == "offline")
+		{
+			Life* lifeGame = new Life(inputFilename);
+			lifeGame->Tick(countTick);
+			lifeGame->Dump(outputFilename);
+			std::cout << "Your game have been saved in file: " << outputFilename;
+			return 0;
+		}
+		else if (mode == "online")
+		{
+			std::cout << "Write the life file name: ";
+			std::string inputFilename;
+			std::cin >> inputFilename;
+			std::cout << std::endl;
+			Life* lifeGame = new Life(inputFilename);
+			lifeGame->Help();
+			std::string action;
+			while (std::getline(std::cin, action))
+			{
+				if (action == "exit")
+				{
+					return 0;
+				}
+				if (action == "help")
+				{
+					lifeGame->Help();
+				}
+				if (action == "dump")
+				{
+					std::cout << "Write the output file name: ";
+					std::string outputName;
+					std::cin >> outputName;
+					std::cout << std::endl;
+					lifeGame->Dump(outputName);
+					std::cout << "Your game have been saved in file: " << outputName;
+					std::cout << std::endl;
+				}
+				if (action == "tick")
+				{
+					std::cout << "Write the count of ticks: ";
+					unsigned int countTick;
+					std::cin >> countTick;
+					std::cout << std::endl;
+					lifeGame->Tick(countTick);
+					lifeGame->PrintGame(std::cout);
+				}
+				if (action == "print")
+				{
+					lifeGame->PrintGame(std::cout);
+				}
+			}
+		}
+	}
+	catch (const Exception& ex)
+	{
+		std::cout << ex.what() << " in " << ex.where();
+	}
+	catch (const std::exception& ex)
+	{
+		std::cout << ex.what();
 	}
 }

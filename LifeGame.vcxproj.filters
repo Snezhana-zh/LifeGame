@@ -28,7 +28,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="in.txt" />
     <Text Include="help.txt" />
   </ItemGroup>
 </Project>

@@ -30,14 +30,14 @@ std::ostream& operator<<(std::ostream& out, const Board& board)
 	return out;
 }
 
-Point::Point() : x(0), y(0), isLive(0) {}
-Point::Point(int x, int y, bool isLive, size_t sizeBoard) : x(x), y(y), isLive(isLive)
+Point::Point() : x(0), y(0), isAlive(0) {}
+Point::Point(int x, int y, bool isAlive, size_t sizeBoard) : x(x), y(y), isAlive(isAlive)
 {
 	Normalize(sizeBoard);
 }
-bool Point::IsLive() const
+bool Point::IsAlive() const
 {
-	return isLive;
+	return isAlive;
 }
 int Point::FirstCoordinate()  const 
 {
@@ -47,9 +47,9 @@ int Point::SecondCoordinate() const
 {
 	return y;
 }
-void Point::IsLive(bool val)
+void Point::IsAlive(bool val)
 {
-	isLive = val;
+	isAlive = val;
 }
 void Point::Normalize(size_t sizeBoard) 
 {
@@ -94,7 +94,7 @@ void Point::CoordinatesNeighbours(int neighbours[][2], size_t sizeBoard) const
 		}
 	}
 }
-unsigned char Point::CountLiveNeighbours(const std::vector<Point>& data, size_t sizeBoard) const
+unsigned char Point::CountLiveNeighbours(const GameField& data, size_t sizeBoard) const
 {
 	int neighbours[countNeighbours][2];
 	CoordinatesNeighbours(neighbours, sizeBoard);
@@ -103,7 +103,7 @@ unsigned char Point::CountLiveNeighbours(const std::vector<Point>& data, size_t 
 	{
 		int xt = neighbours[i][0];
 		int yt = neighbours[i][1];
-		if (data.at(yt * sizeBoard + xt).IsLive()) 
+		if (data.at(yt * sizeBoard + xt).IsAlive()) 
 		{
 			count++;
 		}
@@ -120,16 +120,22 @@ Stream openFile(const std::string& filename)
 	}
 	return ifs;
 }
-
-Board::Board(size_t size, const std::string& filename) : data(new std::vector<Point>(size * size)), 
-	sizeBoard(size)
+bool Board::ChangeMode() const
 {
+	return modeGameField ? false : true;
+}
+Board::Board(size_t size, const std::string& filename) : sizeBoard(size), modeGameField(0)
+{
+	fields[0].resize(size * size);
+	fields[1].resize(size * size);
+
 	for (unsigned int y = 0; y < sizeBoard; ++y) 
 	{
 		for (unsigned int x = 0; x < sizeBoard; ++x)
 		{
 			Point pt(x, y, false, sizeBoard);
-			data->at(y * sizeBoard + x) = pt;
+			fields[0].at(y * sizeBoard + x) = pt;
+			fields[1].at(y * sizeBoard + x) = pt;
 		}
 	}
 	std::ifstream ifs = openFile<std::ifstream>(filename);
@@ -154,20 +160,20 @@ Board::Board(size_t size, const std::string& filename) : data(new std::vector<Po
 		PushPoint(p);
 	}
 }
-Board::Board(size_t size) : sizeBoard(size) , data(new std::vector<Point>(size* size)) 
+Board::Board(size_t size) : sizeBoard(size), modeGameField(0)
 {
+	fields[0].resize(size * size);
+	fields[1].resize(size * size);
+
 	for (unsigned int y = 0; y < sizeBoard; ++y)
 	{
 		for (unsigned int x = 0; x < sizeBoard; ++x)
 		{
 			Point pt(x, y, false, sizeBoard);
-			data->at(y * sizeBoard + x) = pt;
+			fields[0].at(y * sizeBoard + x) = pt;
+			fields[1].at(y * sizeBoard + x) = pt;
 		}
 	}
-}
-Board::~Board()
-{
-	delete data;
 }
 void Board::PushPoint(Point p) 
 {
@@ -175,7 +181,7 @@ void Board::PushPoint(Point p)
 	{
 		throw Exception("The Normalize func in class Point works wrong", __func__);
 	}
-	data->at(p.SecondCoordinate() * sizeBoard + p.FirstCoordinate()) = p;
+	fields[modeGameField].at(p.SecondCoordinate() * sizeBoard + p.FirstCoordinate()) = p;
 }
 unsigned int Board::LivePointCount() const
 {
@@ -184,7 +190,7 @@ unsigned int Board::LivePointCount() const
 	{
 		for (unsigned int j = 0; j < sizeBoard; ++j) 
 		{
-			if (data->at(i * sizeBoard + j).IsLive()) 
+			if (fields[modeGameField].at(i * sizeBoard + j).IsAlive())
 			{
 				count++;
 			}
@@ -198,37 +204,34 @@ size_t Board::GetSize() const
 }
 void Board::NextGeneration(const std::string& birthPointCount, const std::string& survivalPointCount)
 {
-	std::vector<Point>* newData = new std::vector<Point>(sizeBoard * sizeBoard);
-	*newData = *data;
-	for (size_t l = 0; l < data->size(); ++l) 
+	bool newModeGameField = ChangeMode();
+	for (size_t l = 0; l < sizeBoard * sizeBoard; ++l) 
 	{
-		Point p = data->at(l);
-		Point& newP = newData->at(l);
-		unsigned char countLiveNb = p.CountLiveNeighbours(*data, sizeBoard);
-		if (p.IsLive())
+		Point p = fields[modeGameField].at(l);
+
+		unsigned char countLiveNb = p.CountLiveNeighbours(fields[modeGameField], sizeBoard);
+
+		Point& newP = fields[newModeGameField].at(l);
+
+		bool alive = true;
+
+		if (p.IsAlive())
 		{
-			if (survivalPointCount.find(std::to_string(countLiveNb)) != survivalPointCount.npos)
+			if (survivalPointCount.find(std::to_string(countLiveNb)) == survivalPointCount.npos)
 			{
-				newP.IsLive(true);
-			}
-			else {
-				newP.IsLive(false);
+				alive = false;
 			}
 		}
 		else
 		{
-			if (birthPointCount.find(std::to_string(countLiveNb)) != birthPointCount.npos)
+			if (birthPointCount.find(std::to_string(countLiveNb)) == birthPointCount.npos)
 			{
-				newP.IsLive(true);
-			}
-			else
-			{
-				newP.IsLive(false);
+				alive = false;
 			}
 		}
-	}		
-	delete data;
-	data = newData;
+		newP.IsAlive(alive);
+	}
+	modeGameField = newModeGameField;
 }
 bool Board::GetElement(int x, int y) const 
 {
@@ -236,7 +239,7 @@ bool Board::GetElement(int x, int y) const
 		throw Exception("Board is empty", __func__);
 	}
 	Point p(x, y, false, sizeBoard);
-	return data->at(p.SecondCoordinate() * sizeBoard + p.FirstCoordinate()).IsLive();
+	return fields[modeGameField].at(p.SecondCoordinate() * sizeBoard + p.FirstCoordinate()).IsAlive();
 }
 
 Life::Life(const std::string& inputName, size_t size, const std::string_view& universeName_t,
@@ -249,7 +252,7 @@ Life::Life(const std::string& inputName, size_t size, const std::string_view& un
 	{
 		if (!std::getline(ifs, str)) 
 		{
-			throw Exception("Cannot read file", __func__);
+			throw Exception("Cannot read file", inputName);
 		}
 		if (str[0] != '#') 
 		{
@@ -267,7 +270,7 @@ Life::Life(const std::string& inputName, size_t size, const std::string_view& un
 				size_t pos = str.find('/');
 				if (str.size() < 8 || pos == str.npos || pos < 5 || pos + 2 > str.size()) 
 				{
-					throw Exception("Wrong parameter of game", __func__);
+					throw Exception("Wrong parameter of game", inputName);
 				}
 				birthPointCount = str.substr(4, pos - 4);
 				survivalPointCount = str.substr(pos + 2);

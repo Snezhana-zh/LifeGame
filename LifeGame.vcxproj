@@ -135,7 +135,6 @@
     <ClInclude Include="LifeGameHeader.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="in.txt" />
     <Text Include="help.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
