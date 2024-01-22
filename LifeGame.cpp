@@ -122,7 +122,7 @@ Stream openFile(const std::string& filename)
 }
 bool Board::ChangeMode() const
 {
-	return modeGameField ? false : true;
+	return !modeGameField;
 }
 Board::Board(size_t size, const std::string& filename) : sizeBoard(size), modeGameField(0)
 {
@@ -140,7 +140,7 @@ Board::Board(size_t size, const std::string& filename) : sizeBoard(size), modeGa
 	}
 	std::ifstream ifs = openFile<std::ifstream>(filename);
 	std::string coordinates;
-	while(std::getline(ifs, coordinates)) 
+	while(std::getline(ifs, coordinates))
 	{
 		if (coordinates[0] == '#' || coordinates.find(' ') == coordinates.npos) 
 		{
@@ -173,6 +173,12 @@ Board::Board(size_t size) : sizeBoard(size), modeGameField(0)
 			fields[0].at(y * sizeBoard + x) = pt;
 			fields[1].at(y * sizeBoard + x) = pt;
 		}
+	}
+
+	std::vector<std::pair<int, int>> coordinates = { {2, 2}, {3, 2}, {4, 2}, {1, 3}, {2, 3}, {3, 3} };
+	for (size_t i = 0; i < coordinates.size(); ++i) {
+		Point p(coordinates[i].first, coordinates[i].second, true, sizeBoard);
+		PushPoint(p);
 	}
 }
 void Board::PushPoint(Point p) 
@@ -242,6 +248,11 @@ bool Board::GetElement(int x, int y) const
 	return fields[modeGameField].at(p.SecondCoordinate() * sizeBoard + p.FirstCoordinate()).IsAlive();
 }
 
+Life::Life(const std::string_view& universeName_t,
+	const std::string_view& birthPointCount, const std::string_view& survivalPointCount) : sizeBoard(6),
+	universeName(universeName_t), birthPointCount(birthPointCount), survivalPointCount(survivalPointCount) {
+	board = new Board(sizeBoard);
+}
 Life::Life(const std::string& inputName, size_t size, const std::string_view& universeName_t,
 	const std::string_view& birthPointCount_t, const std::string_view& survivalPointCount_t) : inputName(inputName), sizeBoard(size),
 	universeName(universeName_t), birthPointCount(birthPointCount_t), survivalPointCount(survivalPointCount_t)

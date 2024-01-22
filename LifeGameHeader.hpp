@@ -62,8 +62,10 @@ private:
 
 class Life {
 public:
-	Life(const std::string& inputName = "in.life", size_t size = 0, const std::string_view& universeName_t = "My Universe", 
-		const std::string_view& birthPointCount = "3", const std::string_view& survivalPointCount = "23");	
+	Life(const std::string& inputName, size_t size = 0, const std::string_view& universeName_t = "My Universe",
+		const std::string_view& birthPointCount = "3", const std::string_view& survivalPointCount = "23");
+	Life(const std::string_view& universeName_t = "My Universe",
+		const std::string_view& birthPointCount = "3", const std::string_view& survivalPointCount = "23");
 	~Life();
 	void Dump(const std::string& outputName = "out.life") const;
 	void Tick(unsigned int n = 1);

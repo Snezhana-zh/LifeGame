@@ -39,11 +39,20 @@ int main(int argc, char** argv)
 		}
 		else if (mode == "online")
 		{
-			std::cout << "Write the life file name: ";
-			std::string inputFilename;
-			std::cin >> inputFilename;
-			std::cout << std::endl;
-			Life* lifeGame = new Life(inputFilename);
+			std::cout << "Do you prefer to use the default field? (Yes/No)";
+			std::string answer;
+			std::cin >> answer;
+			Life* lifeGame;
+			if (answer == "Yes") {
+				lifeGame = new Life();
+			} 
+			else {
+				std::cout << "Write the life file name: ";
+				std::string inputFilename;
+				std::cin >> inputFilename;
+				std::cout << std::endl;
+				lifeGame = new Life(inputFilename);
+			}			
 			lifeGame->Help();
 			std::string action;
 			while (std::getline(std::cin, action))
